@@ -1,76 +1,49 @@
 const express = require('express');
 const router = express.Router();
-const { CareTip } = require('../models');
+const axios = require('axios');
 
+const API_URL = 'https://pets-guide-book.p.rapidapi.com/rapidApi/v1/all';
+const API_HEADERS = {
+  'x-rapidapi-key': 'f558b5ea2emshd3a2a77f23dbe6bp155bfdjsn9f9f2e2aeaf2',
+  'x-rapidapi-host': 'pets-guide-book.p.rapidapi.com',
+  Referer: 'rapidapi.com',
+};
 
-// Example route for testing
-router.get('/', (req, res) => {
-  res.send('Care tips route is working!');
-});
-
-module.exports = router; // Export the router
-
-// List All Care Tips
+// Get all care tips or filter by pet type
 router.get('/', async (req, res) => {
   try {
-    const tips = await CareTip.find();
-    res.json(tips);
+    const { type } = req.query; // e.g., ?type=Dog
+    const response = await axios.get(API_URL, { headers: API_HEADERS });
+
+    // Filter by `common_name.en` if `type` is specified
+    let careTips = response.data;
+
+    if (type) {
+      careTips = careTips.filter((tip) => tip.common_name.en.toLowerCase() === type.toLowerCase());
+    }
+
+    // Limit results to 10
+    const limitedTips = careTips.slice(0, 10);
+
+    // Map to desired shape
+    const formattedTips = limitedTips.map((tip) => ({
+      common_name: tip.common_name,
+      scientific_name: tip.scientific_name,
+      category: tip.category,
+      description: tip.description,
+      average_size: tip.average_size,
+      average_weight: tip.average_weight,
+      average_lifespan: tip.average_lifespan,
+      general_temperament: tip.general_temperament,
+      common_health_issues: tip.common_health_issues,
+      feeding_recommendations: tip.feeding_recommendations,
+      createdAt: tip.createdAt,
+    }));
+
+    res.json(formattedTips);
   } catch (err) {
-    res.status(500).json({ error: 'Error fetching care tips', details: err.message });
-  }
-});
-
-// Get Care Tips by Pet Type
-router.get('/:type', async (req, res) => {
-  try {
-    const { type } = req.params;
-    const tips = await CareTip.findOne({ type });
-    if (!tips) return res.status(404).json({ error: 'Care tips not found for this type' });
-
-    res.json(tips);
-  } catch (err) {
-    res.status(500).json({ error: 'Error fetching care tips', details: err.message });
-  }
-});
-
-// Add New Care Tips
-router.post('/', async (req, res) => {
-  try {
-    const { type, tips } = req.body;
-    if (!type || !tips || !Array.isArray(tips))
-      return res.status(400).json({ error: 'Type and tips array are required' });
-
-    const newCareTip = new CareTip({ type, tips });
-    await newCareTip.save();
-    res.status(201).json(newCareTip);
-  } catch (err) {
-    res.status(500).json({ error: 'Error adding care tips', details: err.message });
-  }
-});
-
-// Update Care Tips
-router.put('/:type', async (req, res) => {
-  try {
-    const { type } = req.params;
-    const updatedTips = await CareTip.findOneAndUpdate({ type }, req.body, { new: true });
-
-    if (!updatedTips) return res.status(404).json({ error: 'Care tips not found for this type' });
-    res.json(updatedTips);
-  } catch (err) {
-    res.status(500).json({ error: 'Error updating care tips', details: err.message });
-  }
-});
-
-// Delete Care Tips by Pet Type
-router.delete('/:type', async (req, res) => {
-  try {
-    const { type } = req.params;
-    const deletedTips = await CareTip.findOneAndDelete({ type });
-
-    if (!deletedTips) return res.status(404).json({ error: 'Care tips not found for this type' });
-    res.status(204).send();
-  } catch (err) {
-    res.status(500).json({ error: 'Error deleting care tips', details: err.message });
+    console.error('Error fetching care tips:', err.message);
+    res.status(500).json({ error: 'Error fetching care tips from RapidAPI', details: err.message });
   }
 });
 

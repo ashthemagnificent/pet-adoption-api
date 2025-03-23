@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGO_URI=mongodb://db:27017/petAdoption
+    depends_on:
+      - db
+    networks:
+      - pet-adoption-network
+
+  db:
+    image: mongo:5
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - db_data:/data/db
+    networks:
+      - pet-adoption-network
+
+volumes:
+  db_data:
+
+networks:
+  pet-adoption-network:
+    driver: bridge
