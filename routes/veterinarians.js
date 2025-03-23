@@ -1,17 +1,10 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
-const IPSTACK_API_KEY = process.env.IPSTACK_API_KEY || 'ff078eadccf3564421591c7bf1ee1c3f';
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || 'AIzaSyBPk77UHG6rEdTOdAYr2GxbQscxqU9zyo0'; // Replace with your Google API key
-//const GOOGLE_API_KEY = "AIzaSyBPk77UHG6rEdTOdAYr2GxbQscxqU9zyo0"; //process.env.GOOGLE_API_KEY; // Load API key from .env
-// Helper function to get location from IP (server-side fallback)
-/*const getLocationFromIP = async (ip) => {
-  const IPSTACK_API_KEY = "ff078eadccf3564421591c7bf1ee1c3f_API_KEY"; // Replace with your actual key
-  const url = `http://api.ipstack.com/${ip}?access_key=${IPSTACK_API_KEY}`;
-  const response = await axios.get(url);
-  const { latitude, longitude } = response.data;
-  return { latitude, longitude };
-};*/
+const IPSTACK_API_KEY = process.env.IPSTACK_API_KEY || 'YOUR_IPSTACK_API_KEY';
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || 'YOUR_GOOGLE_API_KEY'; // Replace with your Google API key
+
+
 // Get Nearby Veterinarians Using Dynamic Location
 router.get('/nearby', async (req, res) => {
   try {
